@@ -1,5 +1,6 @@
 // web/app/planes/page.tsx
-import { Plus, WifiOff } from "lucide-react";
+import { WifiOff } from "lucide-react";
+import FabCrearItem from "@/components/ui/fab-crear-item";
 
 export interface PlanItem {
   id: string;
@@ -67,11 +68,9 @@ export default async function PlanesPage() {
   const planes = await getPlanesConProgreso();
   return (
     <div className="flex flex-col md:ml-62.5  h-full bg-gray-50 p-4">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Tus Planes</h1>
-        <button className="bg-blue-100 text-blue-600 p-2 rounded-full">
-          <Plus size={20} />
-        </button>
+        <p className="text-gray-500 text-sm">Tus objetivos y metas de acción</p>
       </div>
 
       <div className="space-y-4">
@@ -130,6 +129,8 @@ export default async function PlanesPage() {
           ))
         )}
       </div>
+
+      <FabCrearItem tipo="plan" />
     </div>
   );
 }
