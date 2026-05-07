@@ -2,15 +2,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import BottomNav from "@/components/bottom-nav";
-import MaxWidthWrapper from "@/components/ui/max-width-wrapper";
-import SideNav from "@/components/side-nav";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AI Chat - Powered by Gemini AI",
-  description: "Chat with an AI",
+  title: "Smart Life Coach - Tu coach de vida inteligente",
+  description:
+    "Planifica tus metas, organiza tus tareas y alcanza tus objetivos con la ayuda de inteligencia artificial.",
 };
 
 export default function RootLayout({
@@ -19,16 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="es" className="h-full">
       <body
         className={`${inter.className} bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900`}
         suppressHydrationWarning={true}
       >
-        <MaxWidthWrapper>
-          <SideNav />
-          <main className="flex-1">{children}</main>
-        </MaxWidthWrapper>
-        <BottomNav />
+        {children}
       </body>
     </html>
   );

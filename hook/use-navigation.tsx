@@ -7,7 +7,7 @@ const useNavigation = () => {
   const pathname = usePathname();
 
   return {
-    isChatActive: pathname === "/",
+    isChatActive: pathname === "/chat",
     isPlanesActive: pathname === "/planes",
     isTareasActive: pathname === "/tareas",
     isPerfilActive: pathname === "/perfil",

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Plus, X, Loader2, CalendarDays, AlignLeft, Tag } from "lucide-react";
 import { crearItem } from "@/app/actions/planes";
-import { PlanItem } from "@/app/planes/page";
+import { PlanItem } from "@/app/(app)/planes/page";
 
 interface FabCrearItemProps {
   tipo: "plan" | "tarea";

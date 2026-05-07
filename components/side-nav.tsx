@@ -16,14 +16,14 @@ const SideNav = () => {
   return (
     <div className="flex-col space-y-4 items-center py-8 bg-zinc-100 dark:bg-zinc-950 border-t dark:border-zinc-800 border-zinc-200 shadow-lg hidden sm:hidden md:flex border-r h-full w-30 md:w-62.5 md:items-start fixed">
       <Link
-        href="/"
+        href="/chat"
         className="flex flex-row space-x-1 items-center hover:bg-white/10 p-4 rounded-full duration-200"
       >
         <Icon icon="" width="38" height="38"></Icon>{" "}
         {/* Aquí pondríamos el logo del Smart Life Coach */}
       </Link>
       <Link
-        href="/"
+        href="/chat"
         className="flex flex-row space-x-4 items-center px-4 py-3 rounded-full duration-200 hover:bg-white/10 relative"
       >
         {isChatActive ? (

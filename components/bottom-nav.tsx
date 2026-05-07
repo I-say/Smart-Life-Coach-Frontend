@@ -22,7 +22,7 @@ const BottomNav = () => {
       className={`fixed bottom-0 w-full py-5 z-10 bg-zinc-100 dark:bg-zinc-950 border-t dark:border-zinc-800 border-zinc-200 shadow-lg md:hidden ${navClass}`}
     >
       <div className="flex flex-row justify-around items-center bg-transparent w-full">
-        <Link href="/" className="flex items-center relative bottom-1.5">
+        <Link href="/chat" className="flex items-center relative bottom-1.5">
           {isChatActive ? (
             <Icon
               style={{ color: "#2563EB" }}
