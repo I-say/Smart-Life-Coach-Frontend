@@ -2,6 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/utils/supabase/server";
 
 interface CrearItemPayload {
   title: string;
@@ -12,19 +13,19 @@ interface CrearItemPayload {
   parent_id?: string | null;
 }
 
-/**
- * Crea un Plan o una Tarea en el backend.
- *
- * TODO (backend): Confirmar el endpoint correcto con el equipo de backend.
- * Actualmente se asume POST /api/planes para ambos tipos (plan y tarea),
- * diferenciados únicamente por el campo `parent_id`.
- * Si el endpoint cambia, solo hay que modificar la URL de abajo.
- */
 export async function crearItem(payload: CrearItemPayload) {
   const fastApiUrl = process.env.FASTAPI_BASE_URL || "http://localhost:8000";
 
+  // Extraer sesión de Supabase
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    throw new Error("No estás autenticado.");
+  }
+
   const body = {
-    user_id: "TU_USER_ID", // TODO: reemplazar con user_id real cuando se implemente auth
     title: payload.title,
     description: payload.description,
     status: "pending",
@@ -34,7 +35,10 @@ export async function crearItem(payload: CrearItemPayload) {
 
   const res = await fetch(`${fastApiUrl}/api/planes`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
     body: JSON.stringify(body),
   });
 

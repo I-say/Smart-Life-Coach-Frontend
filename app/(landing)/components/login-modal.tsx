@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 interface LoginModalProps {
   open: boolean;
@@ -20,13 +21,19 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
   // ------------------------------------------------------------------
   async function handleGoogleLogin() {
     setLoading(true);
-    // TODO: Integrar Google OAuth aquí
-    // Ejemplo futuro con Supabase:
-    //   const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
-    //   if (error) { setLoading(false); return; }
+    const supabase = createClient();
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
 
-    // Placeholder: redirigir directamente al chat
-    router.push("/chat");
+    if (error) {
+      console.error("Error logging in:", error);
+      setLoading(false);
+    }
   }
 
   if (!open) return null;

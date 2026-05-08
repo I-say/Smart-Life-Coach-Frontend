@@ -2,6 +2,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { createClient } from '@/utils/supabase/server';
 
 export async function toggleStatusTarea(id: string, currentStatus: string) {
   // 1. Invertimos el estado actual
@@ -9,10 +10,21 @@ export async function toggleStatusTarea(id: string, currentStatus: string) {
   const fastApiUrl = process.env.FASTAPI_BASE_URL || "http://localhost:8000";
 
   try {
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token) {
+      throw new Error("No estás autenticado.");
+    }
+
     // Con await fetch enviamos la petición a FastAPI
     await fetch(`${fastApiUrl}/api/planes/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ status: newStatus })
     });
     

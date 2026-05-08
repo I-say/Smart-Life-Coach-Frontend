@@ -1,20 +1,30 @@
 // web/app/api/chat/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         
+        // Extraer sesión de Supabase
+        const supabase = await createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        
         // La URL del backend en FastAPI, recomendación a mi yo futuro (Usar variables de entorno en producción)
         const fastApiUrl = process.env.FASTAPI_BASE_URL || "http://localhost:8000";
+
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
 
         // Redirigimos la petición de Next.js hacia FastAPI
         const response = await fetch(`${fastApiUrl}/Chat`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                // "Authorization": `Bearer ${process.env.API_SECRET}` // Opcional: para seguridad entre servidores
-            },
+            headers,
             // Enviamos el historial de mensajes que genera useChat automáticamente
             body: JSON.stringify({ messages: body.messages }), 
         });
@@ -29,7 +39,7 @@ export async function POST(req: NextRequest) {
             headers: {
                 "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache, no-transform",
-                "X-Vercel-AI-Data-Stream": "v1", // Header clave para Vercel AI SDK 5
+                "x-vercel-ai-ui-message-stream": "v1", // Header clave para Vercel AI SDK 6
             },
         });
 
