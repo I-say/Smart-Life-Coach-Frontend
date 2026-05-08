@@ -12,7 +12,13 @@ docker build -t nextjs-app .
 ```
 
 ```bash
-docker run -p 3000:3000 nextjs-app
+docker run -p 3000:3000 \
+  --name mi-app-nextjs \
+  --add-host host.docker.internal:host-gateway \
+  --env-file .env.local \
+  -e SUPABASE_SERVER_URL=http://host.docker.internal:54321 \
+  -e FASTAPI_BASE_URL=http://host.docker.internal:8000 \
+  nextjs-app
 ```
 
 # NextJS Docs

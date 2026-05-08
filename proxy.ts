@@ -7,10 +7,15 @@ export async function proxy(request: NextRequest) {
     request,
   })
 
+  const supabaseUrl = process.env.SUPABASE_SERVER_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    supabaseUrl,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: {
+        name: 'sb-slc',
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll()
