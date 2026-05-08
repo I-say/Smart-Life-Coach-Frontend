@@ -19,14 +19,19 @@ export interface PlanItemConProgreso extends PlanItem {
   progreso: number;
 }
 
+import { createClient } from "@/utils/supabase/server";
+
 // Función para obtener los planes desde FastAPI
 async function getPlanesConProgreso(): Promise<PlanItemConProgreso[] | null> {
   const fastApiUrl = process.env.FASTAPI_BASE_URL || "http://localhost:8000";
   try {
-    // Suponiendo que se le pasa el user_id de alguna cookie o sesion
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
 
-    const res = await fetch(`${fastApiUrl}/api/planes?user_id=TU_USER_ID`, {
-      cache: "no-store", // 'no-store' fuerza a que siempre traiga datos frescos de la Db
+    const res = await fetch(`${fastApiUrl}/api/planes`, {
+      cache: "no-store",
+      headers: token ? { "Authorization": `Bearer ${token}` } : {},
     });
 
     if (!res.ok) return [];

@@ -9,12 +9,19 @@ interface DatosTareas {
   planes: PlanItem[]; // para el selector "plan padre" del modal
 }
 
+import { createClient } from "@/utils/supabase/server";
+
 async function getDatos(): Promise<DatosTareas> {
   const fastApiUrl = process.env.FASTAPI_BASE_URL || "http://localhost:8000";
 
   try {
-    const res = await fetch(`${fastApiUrl}/api/planes?user_id=TU_USER_ID`, {
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    const res = await fetch(`${fastApiUrl}/api/planes`, {
       cache: "no-store",
+      headers: token ? { "Authorization": `Bearer ${token}` } : {},
     });
 
     if (!res.ok) return { tareas: [], planes: [] };
