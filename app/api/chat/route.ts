@@ -25,8 +25,12 @@ export async function POST(req: NextRequest) {
         const response = await fetch(`${fastApiUrl}/Chat`, {
             method: "POST",
             headers,
-            // Enviamos el historial de mensajes que genera useChat automáticamente
-            body: JSON.stringify({ messages: body.messages }), 
+            // Enviamos el historial de mensajes, session_id y settings
+            body: JSON.stringify({ 
+                messages: body.messages,
+                session_id: body.session_id,
+                ai_settings: body.ai_settings
+            }), 
         });
 
         if (!response.ok) {

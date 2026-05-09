@@ -3,7 +3,7 @@
 
 import { UIMessage, useChat } from "@ai-sdk/react";
 import { useRef, useEffect, useState } from "react";
-import { Send, Bot, User, Loader2, AlertCircle } from "lucide-react";
+import { Send, Bot, User, Loader2, AlertCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { getChatSessions, getChatMessages } from "@/app/actions/chat";
+import { v4 as uuidv4 } from "uuid";
 import { DefaultChatTransport } from "ai";
 
 export default function Chat() {
@@ -25,6 +27,29 @@ export default function Chat() {
   const inputRef = useRef<HTMLInputElement>(null);
   
   const [input, setInput] = useState("");
+  const [sessionId, setSessionId] = useState("");
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [isSessionsOpen, setIsSessionsOpen] = useState(false);
+  const [aiSettings, setAiSettings] = useState<any>({});
+
+  // Cargar configuraciones de IA y sesiones iniciales
+  useEffect(() => {
+    const settings = localStorage.getItem("ai_settings");
+    if (settings) {
+      setAiSettings(JSON.parse(settings));
+    }
+    
+    // Generar un session_id nuevo si no existe uno
+    const newSessionId = uuidv4();
+    setSessionId(newSessionId);
+
+    cargarSesiones();
+  }, []);
+
+  async function cargarSesiones() {
+    const data = await getChatSessions();
+    setSessions(data);
+  }
 
   const {
     messages,
@@ -33,9 +58,16 @@ export default function Chat() {
     error,
     regenerate,
     stop,
-    // setMessages, // Ya no se usa con el useEffect, fue reemplazado por useChat y messages
-    // Usamos transport: new DefaultChatTransport para conectarnos al servidor de FastAPI donde estará nuestro Backend
+    setMessages,
   } = useChat({
+    id: sessionId,
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      body: {
+        session_id: sessionId,
+        ai_settings: aiSettings
+      }
+    }),
     messages: [
       {
         id: "welcome",
@@ -43,30 +75,58 @@ export default function Chat() {
         parts: [
           {
             type: "text",
-            text: "¡Hola! Soy tu coach de vida inteligente, si buscas algún plan para lograr tus objetivos dime y te ayudo a planificarlo.",
+            text: "¡Hola! Soy tu coach de vida inteligente. ¿En qué te puedo ayudar hoy?",
           },
         ],
       },
-    ] as UIMessage[], // Se agrega UIMessage para forzar el tipado y evitar errores
+    ] as UIMessage[],
     onError: (error) => {
       console.error("Chat error:", error);
     },
     onFinish: () => {
       inputRef.current?.focus();
+      cargarSesiones(); // Recargar historial por si se creó un nuevo título
     },
   });
+
+  async function handleLoadSession(id: string) {
+    setSessionId(id);
+    setIsSessionsOpen(false);
+    
+    const dbMessages = await getChatMessages(id);
+    
+    const uiMessages: UIMessage[] = dbMessages.map((m: any) => ({
+      id: m.id,
+      role: m.sender === "user" ? "user" : "assistant",
+      parts: [{ type: "text", text: m.content }]
+    }));
+
+    if (uiMessages.length > 0) {
+      setMessages(uiMessages);
+    } else {
+      setMessages([{
+        id: "welcome",
+        role: "assistant",
+        parts: [{ type: "text", text: "¡Hola de nuevo! ¿Continuamos trabajando en tus metas?" }]
+      }] as UIMessage[]);
+    }
+  }
+
+  function handleNewSession() {
+    setSessionId(uuidv4());
+    setMessages([{
+      id: "welcome",
+      role: "assistant",
+      parts: [{ type: "text", text: "¡Hola! Soy tu coach de vida inteligente. ¿En qué te puedo ayudar hoy?" }]
+    }] as UIMessage[]);
+    setIsSessionsOpen(false);
+  }
 
   const isLoading = status === "streaming" || status === "submitted";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-
-    // Prueba: cambiamos el sendMessage para tener una versión menos rígida, ahora no tiene parts ni role
-    const payload= {
-      text: input
-    };
-    console.log("Enviando a API", payload)
 
     sendMessage({ text: input });
     setInput("");
@@ -88,6 +148,8 @@ export default function Chat() {
     }
   }, [messages]);
 
+  const coachName = aiSettings?.nombre || "Smart Life Coach";
+
   return (
     <div className="flex h-screen max-w-5xl mx-auto p-4 pb-20 md:pb-4">
       <Card className="flex-1 flex flex-col shadow-xl overflow-hidden">
@@ -103,16 +165,43 @@ export default function Chat() {
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background animate-pulse" />
             </div>
             <div className="flex-1">
-              <CardTitle>Smart Life Coach - Tu asistente inteligente</CardTitle>
-              <CardDescription>Impulsado por Gemini 3 Flash</CardDescription>
+              <CardTitle>{coachName} - Tu asistente inteligente</CardTitle>
+              <CardDescription>Impulsado por AI Agent & LangGraph</CardDescription>
             </div>
             <div>
-              <Popover>
+              <Popover open={isSessionsOpen} onOpenChange={setIsSessionsOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline">Chats anteriores</Button>
+                  <Button variant="outline" className="gap-2">
+                    <Clock size={16} />
+                    Chats anteriores
+                  </Button>
                 </PopoverTrigger>
-                <PopoverContent align="end" className="w-40">
-                  Aligned to end
+                <PopoverContent align="end" className="w-64 p-0">
+                  <div className="p-3 border-b border-gray-100">
+                    <Button onClick={handleNewSession} className="w-full" size="sm">
+                      + Nuevo Chat
+                    </Button>
+                  </div>
+                  <ScrollArea className="h-[300px]">
+                    <div className="p-2 space-y-1">
+                      {sessions.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">No hay chats anteriores.</p>
+                      ) : (
+                        sessions.map((ses) => (
+                          <button
+                            key={ses.id}
+                            onClick={() => handleLoadSession(ses.id)}
+                            className={cn(
+                              "w-full text-left p-2 text-sm rounded-md hover:bg-muted transition-colors truncate",
+                              ses.id === sessionId && "bg-muted font-medium text-blue-600"
+                            )}
+                          >
+                            {ses.title}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </ScrollArea>
                 </PopoverContent>
               </Popover>
             </div>

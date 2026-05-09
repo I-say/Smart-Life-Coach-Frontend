@@ -5,11 +5,13 @@ import { ChevronRight, LogOut, Settings, Bot } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import AjustesGeneralesModal from "./ajustes-generales-modal";
+import AjustesIAModal from "./ajustes-ia-modal";
 
 export default function PerfilOpciones() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGeneralesOpen, setIsGeneralesOpen] = useState(false);
+  const [isIAOpen, setIsIAOpen] = useState(false);
 
   async function handleLogout() {
     setLoading(true);
@@ -19,15 +21,11 @@ export default function PerfilOpciones() {
     router.refresh();
   }
 
-  function handleIA_Click() {
-    alert(`Próximamente: Configuración de Ajustes de la IA. ¡El coach está trabajando en ello! 🛠️`);
-  }
-
   return (
     <>
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
         <button 
-          onClick={handleIA_Click}
+          onClick={() => setIsIAOpen(true)}
           className="w-full p-4 flex justify-between items-center border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
         >
           <div className="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -38,7 +36,7 @@ export default function PerfilOpciones() {
         </button>
 
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsGeneralesOpen(true)}
           className="w-full p-4 flex justify-between items-center border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
         >
           <div className="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -62,8 +60,13 @@ export default function PerfilOpciones() {
       </div>
 
       <AjustesGeneralesModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        isOpen={isGeneralesOpen} 
+        onClose={() => setIsGeneralesOpen(false)} 
+      />
+
+      <AjustesIAModal
+        isOpen={isIAOpen}
+        onClose={() => setIsIAOpen(false)}
       />
     </>
   );
