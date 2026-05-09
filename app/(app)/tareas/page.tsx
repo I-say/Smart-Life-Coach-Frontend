@@ -1,8 +1,8 @@
 // web/app/tareas/page.tsx
 import { WifiOff } from "lucide-react";
 import { PlanItem } from "../planes/page";
-import BotonEstadoTarea from "@/components/ui/button-estado-tarea";
 import FabCrearItem from "@/components/ui/fab-crear-item";
+import TareasList from "./components/tareas-list";
 
 interface DatosTareas {
   tareas: PlanItem[] | null;
@@ -52,42 +52,18 @@ export default async function TareasPage() {
 
       <div className="space-y-3">
         {tareas === null ? (
-          <div className="bg-red-50 border border-red-200 p-6 rounded-xl flex flex-col items-center justify-center text-center gap-3">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 p-6 rounded-xl flex flex-col items-center justify-center text-center gap-3">
             <WifiOff className="text-red-400" size={40} />
-            <h3 className="font-bold text-red-800">
+            <h3 className="font-bold text-red-800 dark:text-red-400">
               Sin conexión con el Servidor
             </h3>
-            <p className="text-red-600 text-sm">
+            <p className="text-red-600 dark:text-red-300 text-sm">
               No pudimos conectar con el servidor. Verifica tu conexión a
               internet o intenta de nuevo más tarde.
             </p>
           </div>
-        ) : tareas.length === 0 ? (
-          <p className="text-gray-500">
-            {" "}
-            No hay tareas asignadas en este momento.
-          </p>
         ) : (
-          tareas.map((tarea) => (
-            <div
-              key={tarea.id}
-              className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4 hover:border-blue-300 transition-colors"
-            >
-              <BotonEstadoTarea id={tarea.id} status={tarea.status} />
-              <div className="flex-1">
-                <h3
-                  className={`font-bold ${tarea.status === "completed" ? "text-gray-400 line-through" : "text-gray-800"}`}
-                >
-                  {tarea.title}
-                </h3>
-                {tarea.description && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    {tarea.description}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))
+          <TareasList tareasIniciales={tareas} />
         )}
       </div>
 

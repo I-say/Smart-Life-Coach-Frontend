@@ -1,6 +1,7 @@
 // web/app/planes/page.tsx
 import { WifiOff } from "lucide-react";
 import FabCrearItem from "@/components/ui/fab-crear-item";
+import PlanesList from "./components/planes-list";
 
 export interface PlanItem {
   id: string;
@@ -81,57 +82,18 @@ export default async function PlanesPage() {
       <div className="space-y-4">
         {/* Renderizamos dinámicamente desde la base de datos */}
         {planes === null ? (
-          <div className="bg-red-50 border border-red-200 p-6 rounded-xl flex flex-col items-center justify-center text-center gap-3">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 p-6 rounded-xl flex flex-col items-center justify-center text-center gap-3">
             <WifiOff className="text-red-400" size={40} />
-            <h3 className="font-bold text-red-800">
+            <h3 className="font-bold text-red-800 dark:text-red-400">
               Sin conexión con el Servidor
             </h3>
-            <p className="text-red-600 text-sm">
+            <p className="text-red-600 dark:text-red-300 text-sm">
               No pudimos conectar con el servidor. Verifica tu conexión a
               internet o intenta de nuevo más tarde.
             </p>
           </div>
-        ) : planes.length === 0 ? (
-          <p className="text-gray-500">
-            Aún no tienes planes. ¡Pídele uno al Coach!
-          </p>
         ) : (
-          planes.map((plan) => (
-            <div
-              key={plan.id}
-              className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3 hover:border-blue-300 transition-colors"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-bold text-gray-800">{plan.title}</h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {plan.progreso}% completado
-                  </p>
-                </div>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    plan.status === "completed" || plan.progreso === 100
-                      ? "bg-blue-100 text-blue-600"
-                      : (plan.progreso === 0 ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700")
-                  }`}
-                >
-                  {plan.status === "completed" || plan.progreso === 100
-                    ? "Finalizado"
-                    : (plan.progreso === 0 ? "Por iniciar" : "En curso")} {/*Se agregan los caos "Por iniciar" cuando progreso es igual a 0*/} 
-                </span>
-              </div>
-
-              {/* Barra de progreso dinámica */}
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-in-out"
-                  style={{
-                    width: `${plan.progreso}%`,
-                  }}
-                ></div>
-              </div>
-            </div>
-          ))
+          <PlanesList planesInciales={planes} />
         )}
       </div>
 
