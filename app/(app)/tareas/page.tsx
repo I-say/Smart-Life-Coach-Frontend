@@ -63,7 +63,7 @@ export default async function TareasPage() {
             </p>
           </div>
         ) : (
-          <TareasList tareasIniciales={tareas} />
+          <TareasList tareasIniciales={tareas} planes={planes} />
         )}
       </div>
 

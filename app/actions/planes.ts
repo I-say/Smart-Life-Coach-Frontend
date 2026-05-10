@@ -52,3 +52,49 @@ export async function crearItem(payload: CrearItemPayload) {
 
   return res.json();
 }
+
+export async function editarItem(id: string, payload: Partial<CrearItemPayload>) {
+  const fastApiUrl = process.env.FASTAPI_BASE_URL || "http://localhost:8000";
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) throw new Error("No estás autenticado.");
+
+  const res = await fetch(`${fastApiUrl}/api/planes/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("Error editando item");
+
+  revalidatePath("/planes");
+  revalidatePath("/tareas");
+
+  return res.json();
+}
+
+export async function eliminarItem(id: string) {
+  const fastApiUrl = process.env.FASTAPI_BASE_URL || "http://localhost:8000";
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) throw new Error("No estás autenticado.");
+
+  const res = await fetch(`${fastApiUrl}/api/planes/${id}`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+
+  if (!res.ok) throw new Error("Error eliminando item");
+
+  revalidatePath("/planes");
+  revalidatePath("/tareas");
+
+  return res.json();
+}

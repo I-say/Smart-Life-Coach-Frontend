@@ -1,20 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { EyeOff, Eye } from "lucide-react";
+import { EyeOff, Eye, Edit3, Filter } from "lucide-react";
 import { PlanItem } from "../../planes/page";
 import BotonEstadoTarea from "@/components/ui/button-estado-tarea";
+import ModalEditarItem from "@/components/ui/modal-editar-item";
 
 interface TareasListProps {
   tareasIniciales: PlanItem[];
+  planes: PlanItem[];
 }
 
-export default function TareasList({ tareasIniciales }: TareasListProps) {
+export default function TareasList({ tareasIniciales, planes }: TareasListProps) {
   const [hideCompleted, setHideCompleted] = useState(false);
+  const [planFiltro, setPlanFiltro] = useState<string>("all");
+  const [editingItem, setEditingItem] = useState<PlanItem | null>(null);
 
-  const tareas = hideCompleted 
+  let tareas = hideCompleted 
     ? tareasIniciales.filter(t => t.status !== "completed")
     : tareasIniciales;
+
+  if (planFiltro !== "all") {
+    tareas = tareas.filter(t => t.parent_id === planFiltro);
+  }
 
   if (tareasIniciales.length === 0) {
     return <p className="text-gray-500 dark:text-gray-400">No hay tareas asignadas en este momento.</p>;
@@ -22,10 +30,23 @@ export default function TareasList({ tareasIniciales }: TareasListProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end mb-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter size={16} className="text-gray-400" />
+          <select
+            value={planFiltro}
+            onChange={(e) => setPlanFiltro(e.target.value)}
+            className="flex-1 sm:flex-none text-sm bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
+          >
+            <option value="all">Todos los planes</option>
+            {planes.map(p => (
+              <option key={p.id} value={p.id}>{p.title}</option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={() => setHideCompleted(!hideCompleted)}
-          className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors bg-white dark:bg-slate-900 px-3 py-1.5 rounded-full border border-gray-200 dark:border-slate-800 shadow-sm"
+          className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-800 shadow-sm w-full sm:w-auto"
         >
           {hideCompleted ? <Eye size={16} /> : <EyeOff size={16} />}
           {hideCompleted ? "Mostrar completadas" : "Ocultar completadas"}
@@ -33,7 +54,7 @@ export default function TareasList({ tareasIniciales }: TareasListProps) {
       </div>
 
       {tareas.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400 text-center py-8">No hay tareas pendientes. ¡Todo al día!</p>
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">No hay tareas para este filtro. ¡Todo al día!</p>
       ) : (
         tareas.map((tarea) => (
           <div
@@ -53,8 +74,24 @@ export default function TareasList({ tareasIniciales }: TareasListProps) {
                 </p>
               )}
             </div>
+            <button
+              onClick={() => setEditingItem(tarea)}
+              className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 flex-shrink-0"
+              aria-label="Editar tarea"
+            >
+              <Edit3 size={18} />
+            </button>
           </div>
         ))
+      )}
+
+      {editingItem && (
+        <ModalEditarItem
+          isOpen={!!editingItem}
+          onClose={() => setEditingItem(null)}
+          item={editingItem}
+          planes={planes}
+        />
       )}
     </div>
   );

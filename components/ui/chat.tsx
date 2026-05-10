@@ -3,7 +3,7 @@
 
 import { UIMessage, useChat } from "@ai-sdk/react";
 import { useRef, useEffect, useState } from "react";
-import { Send, Bot, User, Loader2, AlertCircle, Clock } from "lucide-react";
+import { Send, Bot, User, Loader2, AlertCircle, Clock, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getChatSessions, getChatMessages } from "@/app/actions/chat";
+import { getChatSessions, getChatMessages, deleteChatSession } from "@/app/actions/chat";
 import { v4 as uuidv4 } from "uuid";
 import { DefaultChatTransport } from "ai";
 
@@ -122,6 +122,20 @@ export default function Chat() {
     setIsSessionsOpen(false);
   }
 
+  async function handleDeleteSession(idToDelete: string) {
+    if (!confirm("¿Eliminar esta conversación del historial?")) return;
+    try {
+      await deleteChatSession(idToDelete);
+      const newSessions = sessions.filter((s) => s.id !== idToDelete);
+      setSessions(newSessions);
+      if (sessionId === idToDelete) {
+        handleNewSession();
+      }
+    } catch (error) {
+      console.error("Error al eliminar la sesión", error);
+    }
+  }
+
   const isLoading = status === "streaming" || status === "submitted";
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -176,7 +190,7 @@ export default function Chat() {
                     Chats anteriores
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="end" className="w-64 p-0">
+                <PopoverContent align="end" className="w-72 p-0">
                   <div className="p-3 border-b border-gray-100">
                     <Button onClick={handleNewSession} className="w-full" size="sm">
                       + Nuevo Chat
@@ -188,16 +202,29 @@ export default function Chat() {
                         <p className="text-sm text-muted-foreground text-center py-4">No hay chats anteriores.</p>
                       ) : (
                         sessions.map((ses) => (
-                          <button
-                            key={ses.id}
-                            onClick={() => handleLoadSession(ses.id)}
-                            className={cn(
-                              "w-full text-left p-2 text-sm rounded-md hover:bg-muted transition-colors truncate",
-                              ses.id === sessionId && "bg-muted font-medium text-blue-600"
-                            )}
-                          >
-                            {ses.title}
-                          </button>
+                          <div key={ses.id} className="flex items-center gap-1 group">
+                            <button
+                              onClick={() => handleLoadSession(ses.id)}
+                              className={cn(
+                                "flex-1 text-left p-2 text-sm rounded-md hover:bg-muted transition-colors truncate",
+                                ses.id === sessionId && "bg-muted font-medium text-blue-600"
+                              )}
+                              title={ses.title}
+                            >
+                              {ses.title}
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSession(ses.id);
+                              }}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex-shrink-0"
+                              aria-label="Eliminar chat"
+                              title="Eliminar conversación"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         ))
                       )}
                     </div>

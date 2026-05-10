@@ -41,3 +41,20 @@ export async function getChatMessages(sessionId: string) {
     return [];
   }
 }
+
+export async function deleteChatSession(sessionId: string) {
+  const fastApiUrl = process.env.FASTAPI_BASE_URL || "http://localhost:8000";
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) throw new Error("No autenticado");
+
+  const res = await fetch(`${fastApiUrl}/api/chat/sessions/${sessionId}`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+
+  if (!res.ok) throw new Error("Error eliminando sesión");
+  return res.json();
+}

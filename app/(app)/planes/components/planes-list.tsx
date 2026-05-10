@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { EyeOff, Eye } from "lucide-react";
+import { EyeOff, Eye, Edit3 } from "lucide-react";
 import { PlanItemConProgreso } from "../page";
+import ModalEditarItem from "@/components/ui/modal-editar-item";
 
 interface PlanesListProps {
   planesInciales: PlanItemConProgreso[];
@@ -10,6 +11,7 @@ interface PlanesListProps {
 
 export default function PlanesList({ planesInciales }: PlanesListProps) {
   const [hideCompleted, setHideCompleted] = useState(false);
+  const [editingItem, setEditingItem] = useState<PlanItemConProgreso | null>(null);
 
   const planes = hideCompleted 
     ? planesInciales.filter(p => p.status !== "completed" && p.progreso < 100)
@@ -46,17 +48,26 @@ export default function PlanesList({ planesInciales }: PlanesListProps) {
                   {plan.progreso}% completado
                 </p>
               </div>
-              <span
-                className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  plan.status === "completed" || plan.progreso === 100
-                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                    : (plan.progreso === 0 ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400")
-                }`}
-              >
-                {plan.status === "completed" || plan.progreso === 100
-                  ? "Finalizado"
-                  : (plan.progreso === 0 ? "Por iniciar" : "En curso")}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setEditingItem(plan)}
+                  className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-1"
+                  aria-label="Editar plan"
+                >
+                  <Edit3 size={16} />
+                </button>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full font-medium ${
+                    plan.status === "completed" || plan.progreso === 100
+                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                      : (plan.progreso === 0 ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400")
+                  }`}
+                >
+                  {plan.status === "completed" || plan.progreso === 100
+                    ? "Finalizado"
+                    : (plan.progreso === 0 ? "Por iniciar" : "En curso")}
+                </span>
+              </div>
             </div>
 
             <div className="w-full bg-gray-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
@@ -67,6 +78,14 @@ export default function PlanesList({ planesInciales }: PlanesListProps) {
             </div>
           </div>
         ))
+      )}
+
+      {editingItem && (
+        <ModalEditarItem
+          isOpen={!!editingItem}
+          onClose={() => setEditingItem(null)}
+          item={editingItem}
+        />
       )}
     </div>
   );
